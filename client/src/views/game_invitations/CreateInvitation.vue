@@ -82,7 +82,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import gameInvitationService from '@/services/gameInvitationService';
-// import userService from '@/services/userService'; // 引入userService (临时注释掉以排查问题)
+import userService from '@/services/userService'; // 引入userService
 import { useUserStore } from '@/stores/user'; // 引入用户store
 
 const gameName = ref('');
@@ -109,12 +109,12 @@ const removeReceiverById = (userIdToRemove) => {
   selectedReceivers.value = selectedReceivers.value.filter(id => id !== userIdToRemove);
 };
 
-/*
 const fetchAllUsers = async () => {
   loadingUsers.value = true;
   error.value = null;
   try {
-    const response = await userService.getAllUsers(); // 假设userService有getAllUsers方法
+    // 修改为调用新的获取可选用户列表的接口
+    const response = await userService.getSelectableUsers(); 
     // 过滤掉当前登录用户
     allUsers.value = response.data.filter(user => user._id !== userStore.userInfo?._id);
     users.value = [...allUsers.value]; // 初始时显示所有（已过滤的）用户
@@ -128,7 +128,6 @@ const fetchAllUsers = async () => {
     initialLoadDone.value = true;
   }
 };
-*/
 
 // Element Plus el-select的远程搜索方法
 const searchUsers = (query) => {
@@ -148,7 +147,7 @@ const searchUsers = (query) => {
 };
 
 onMounted(() => {
-  // fetchAllUsers(); // 临时注释掉以排查问题
+  fetchAllUsers(); 
 });
 
 const handleCreateInvitation = async () => {

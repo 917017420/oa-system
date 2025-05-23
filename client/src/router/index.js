@@ -28,12 +28,7 @@ const router = createRouter({
           component: () => import('../views/profile/index.vue'),
           meta: { title: '个人中心', icon: 'user', requiresAuth: true }
         },
-        {
-          path: 'documents',
-          name: 'Documents',
-          component: () => import('../views/documents/index.vue'),
-          meta: { title: '文档管理', icon: 'document', requiresAuth: true }
-        },
+
         {
           path: 'workflows',
           name: 'Workflows',

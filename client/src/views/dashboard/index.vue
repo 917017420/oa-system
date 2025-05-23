@@ -3,52 +3,27 @@ import { ref, onMounted, computed } from 'vue';
 import { useUserStore } from '../../stores/user';
 import { useRouter } from 'vue-router';
 import gameInvitationService from '@/services/gameInvitationService';
+import { ElMessage } from 'element-plus';
+import apiClient from '@/apiClient';
 
 const router = useRouter();
 const userStore = useUserStore();
 const userInfo = userStore.userInfo;
 const isAdmin = computed(() => userStore.hasRole('admin'));
 
-// 统计数据
-const statistics = ref({
-  documents: 0,
-  workflows: 0,
-  pendingTasks: 0,
-  completedTasks: 0
-});
-
 // 游戏邀请统计
 const gameInvitationStats = ref({
-  sent: { total: 0, pending: 0, accepted: 0 },
-  received: { total: 0, pending: 0, accepted: 0 }
+  sent: 0,
+  received: 0,
+  pending: 0,
+  accepted: 0
 });
-
-// 待办事项和最近文档已根据用户要求移除
-
-// 获取统计数据
-const fetchStatistics = async () => {
-  try {
-    // 模拟API调用
-    // const response = await axios.get('/api/dashboard/statistics');
-    // statistics.value = response.data;
-    
-    // 模拟数据
-    statistics.value = {
-      documents: 125,
-      workflows: 18,
-      pendingTasks: 7,
-      completedTasks: 32
-    };
-  } catch (error) {
-    console.error('获取统计数据失败:', error);
-  }
-};
 
 // 获取游戏邀请统计数据
 const fetchGameInvitationStats = async () => {
   try {
-    const response = await gameInvitationService.getInvitationStatistics();
-    gameInvitationStats.value = response;
+    const stats = await gameInvitationService.getSimplifiedStatistics();
+    gameInvitationStats.value = stats;
   } catch (error) {
     console.error('获取游戏邀请统计失败:', error);
   }
@@ -59,8 +34,86 @@ const navigateTo = (path) => {
   router.push(path);
 };
 
+// 用户创建弹窗
+const userDialogVisible = ref(false);
+const userForm = ref({
+  username: '',
+  password: '',
+  roles: []
+});
+
+// 角色列表
+const roleOptions = [
+  { value: 'admin', label: '管理员' },
+  { value: 'manager', label: '部门经理' },
+  { value: 'employee', label: '普通员工' }
+];
+
+// 表单校验规则
+const userRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+  ],
+  roles: [
+    { required: true, message: '请选择角色', trigger: 'change' },
+    { type: 'array', min: 1, message: '请至少选择一个角色', trigger: 'change' }
+  ]
+};
+
+// 表单引用
+const userFormRef = ref(null);
+
+// 提交状态
+const submitLoading = ref(false);
+
+// 重置表单
+const resetForm = () => {
+  userForm.value = {
+    username: '',
+    password: '',
+    roles: []
+  };
+  if (userFormRef.value) {
+    userFormRef.value.resetFields();
+  }
+};
+
+// 关闭对话框
+const closeDialog = () => {
+  userDialogVisible.value = false;
+  resetForm();
+};
+
+// 提交表单
+const submitForm = async () => {
+  if (!userFormRef.value) return;
+  
+  await userFormRef.value.validate(async (valid) => {
+    if (valid) {
+      submitLoading.value = true;
+      try {
+        // 调用注册API
+        const response = await apiClient.post('/auth/register', userForm.value);
+        
+        ElMessage.success('用户创建成功');
+        // 关闭对话框并重置表单
+        closeDialog();
+      } catch (error) {
+        console.error('创建用户失败:', error);
+        ElMessage.error(error.response?.data?.message || '创建用户失败，请稍后重试');
+      } finally {
+        submitLoading.value = false;
+      }
+    }
+  });
+};
+
 onMounted(() => {
-  fetchStatistics();
   fetchGameInvitationStats();
 });
 </script>
@@ -76,75 +129,51 @@ onMounted(() => {
       </el-col>
     </el-row>
     
-    <!-- 统计卡片 -->
+    <!-- 游戏邀约统计卡片 -->
     <el-row :gutter="20" class="stat-row">
-      <el-col :xs="12" :sm="6" :md="4">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-card-content">
-            <el-icon class="stat-icon document"><Document /></el-icon>
-            <div class="stat-info">
-              <div class="stat-value">{{ statistics.documents }}</div>
-              <div class="stat-label">文档总数</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :xs="12" :sm="6" :md="4">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-card-content">
-            <el-icon class="stat-icon workflow"><Connection /></el-icon>
-            <div class="stat-info">
-              <div class="stat-value">{{ statistics.workflows }}</div>
-              <div class="stat-label">工作流程</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :xs="12" :sm="6" :md="4">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-card-content">
-            <el-icon class="stat-icon pending"><Clock /></el-icon>
-            <div class="stat-info">
-              <div class="stat-value">{{ statistics.pendingTasks }}</div>
-              <div class="stat-label">待办任务</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :xs="12" :sm="6" :md="4">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-card-content">
-            <el-icon class="stat-icon completed"><Check /></el-icon>
-            <div class="stat-info">
-              <div class="stat-value">{{ statistics.completedTasks }}</div>
-              <div class="stat-label">已完成</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :xs="12" :sm="6" :md="4">
+      <el-col :xs="12" :sm="6" :md="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-card-content">
             <el-icon class="stat-icon game-sent"><Message /></el-icon>
             <div class="stat-info">
-              <div class="stat-value">{{ gameInvitationStats.sent?.total || 0 }}</div>
+              <div class="stat-value">{{ gameInvitationStats.sent || 0 }}</div>
               <div class="stat-label">游戏邀请(发送)</div>
             </div>
           </div>
         </el-card>
       </el-col>
       
-      <el-col :xs="12" :sm="6" :md="4">
+      <el-col :xs="12" :sm="6" :md="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-card-content">
             <el-icon class="stat-icon game-received"><ChatDotRound /></el-icon>
             <div class="stat-info">
-              <div class="stat-value">{{ gameInvitationStats.received?.total || 0 }}</div>
+              <div class="stat-value">{{ gameInvitationStats.received || 0 }}</div>
               <div class="stat-label">游戏邀请(收到)</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      
+      <el-col :xs="12" :sm="6" :md="6">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-card-content">
+            <el-icon class="stat-icon pending"><Timer /></el-icon>
+            <div class="stat-info">
+              <div class="stat-value">{{ gameInvitationStats.pending || 0 }}</div>
+              <div class="stat-label">待处理邀请</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      
+      <el-col :xs="12" :sm="6" :md="6">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-card-content">
+            <el-icon class="stat-icon completed"><Select /></el-icon>
+            <div class="stat-info">
+              <div class="stat-value">{{ gameInvitationStats.accepted || 0 }}</div>
+              <div class="stat-label">已接受邀请</div>
             </div>
           </div>
         </el-card>
@@ -176,6 +205,10 @@ onMounted(() => {
             <el-button v-if="isAdmin" type="info" @click="navigateTo('/game-invitations/admin')">
               <el-icon><Management /></el-icon>
               邀请管理
+            </el-button>
+            <el-button v-if="isAdmin" type="danger" @click="userDialogVisible = true">
+              <el-icon><User /></el-icon>
+              添加用户
             </el-button>
           </div>
         </el-card>
@@ -233,6 +266,46 @@ onMounted(() => {
       </el-col>
     </el-row>
     
+    <!-- 用户创建弹窗 -->
+    <el-dialog
+      v-model="userDialogVisible"
+      title="添加用户"
+      width="500px"
+      @close="closeDialog"
+    >
+      <el-form
+        ref="userFormRef"
+        :model="userForm"
+        :rules="userRules"
+        label-width="80px"
+      >
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="userForm.username" placeholder="请输入用户名" />
+        </el-form-item>
+        
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="userForm.password" type="password" placeholder="请输入密码" show-password />
+        </el-form-item>
+        
+        <el-form-item label="角色" prop="roles">
+          <el-select v-model="userForm.roles" placeholder="请选择角色" multiple style="width: 100%">
+            <el-option
+              v-for="item in roleOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="closeDialog">取消</el-button>
+          <el-button type="primary" :loading="submitLoading" @click="submitForm">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 

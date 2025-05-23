@@ -108,11 +108,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/user';
 import gameInvitationService from '@/services/gameInvitationService';
-// 假设我们有一个方法来获取当前登录用户的ID，这里用一个占位符
-const getCurrentUserId = () => localStorage.getItem('userId'); // 或者从 Vuex/Pinia store 获取
 
 const router = useRouter();
+const userStore = useUserStore();
 const invitations = ref([]);
 const loading = ref(true);
 const error = ref(null);
@@ -130,7 +130,27 @@ const fetchReceivedInvitations = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const response = await gameInvitationService.getReceivedInvitations();
+    // 添加延迟重试机制，确保数据能够正确加载
+    let retries = 0;
+    const maxRetries = 2;
+    let response = [];
+    
+    while (retries <= maxRetries) {
+      try {
+        response = await gameInvitationService.getReceivedInvitations();
+        if (response && Array.isArray(response)) {
+          break; // 成功获取数据，跳出循环
+        }
+      } catch (retryErr) {
+        console.warn(`获取邀约失败，尝试重试 (${retries + 1}/${maxRetries + 1})`);
+        if (retries === maxRetries) throw retryErr; // 最后一次重试失败，抛出错误
+      }
+      
+      // 等待短暂时间后重试
+      await new Promise(resolve => setTimeout(resolve, 500));
+      retries++;
+    }
+    
     invitations.value = response;
   } catch (err) {
     console.error('Error fetching received invitations:', err);
@@ -145,11 +165,12 @@ const refreshInvitations = () => {
   fetchReceivedInvitations();
 };
 
-const currentUserId = getCurrentUserId(); // 在 setup 作用域内获取一次
+// 使用计算属性获取当前用户ID，确保它是响应式的
+const currentUserId = computed(() => userStore.user?._id);
 
 const currentUserResponse = (invitation) => {
-  if (!invitation.responses || !currentUserId) return null;
-  return invitation.responses.find(r => r.user === currentUserId || r.user?._id === currentUserId);
+  if (!invitation.responses || !currentUserId.value) return null;
+  return invitation.responses.find(r => r.user === currentUserId.value || r.user?._id === currentUserId.value);
 };
 
 const hasUserResponded = (invitation) => {
@@ -278,7 +299,8 @@ const formatDateTime = (dateTimeString) => {
 };
 
 onMounted(() => {
-  if (!currentUserId) {
+  // 检查用户是否已登录
+  if (!userStore.isLoggedIn || !userStore.user) {
     error.value = '无法获取当前用户信息，请重新登录。';
     loading.value = false;
     return;

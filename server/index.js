@@ -46,5 +46,5 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/oa-system')
   .catch(err => console.error('MongoDB连接失败:', err));
 
 // 启动服务器
-const PORT = process.env.PORT || 7000;
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => console.log(`服务器运行在端口: ${PORT}`));

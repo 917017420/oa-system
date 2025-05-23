@@ -2,6 +2,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useUserStore } from '../../stores/user';
+import userService from '../../services/userService'; // 新增导入
 
 const userStore = useUserStore();
 
@@ -70,7 +71,8 @@ const userRules = {
     { required: true, message: '请输入姓名', trigger: 'blur' }
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
+    // 编辑时密码非必填，新增时必填
+    // { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
   ],
   email: [
@@ -103,97 +105,40 @@ const submitLoading = ref(false);
 const fetchUsers = async () => {
   loading.value = true;
   try {
-    // 模拟API调用
-    // const response = await axios.get('/api/users', {
-    //   params: {
-    //     page: pagination.currentPage,
-    //     size: pagination.pageSize,
-    //     keyword: searchForm.keyword,
-    //     departmentId: searchForm.departmentId,
-    //     status: searchForm.status
-    //   }
+    const response = await userService.getAllUsers(); // 调用 userService 获取用户
+    // 假设后端返回的数据直接是用户数组，或者包含在 response.data 中
+    // 如果后端API支持分页和过滤，需要传递 pagination 和 searchForm 中的参数
+    // 例如: const response = await userService.getAllUsers({ 
+    //   page: pagination.currentPage, 
+    //   size: pagination.pageSize, 
+    //   ...searchForm 
     // });
-    
-    // 模拟数据
-    setTimeout(() => {
-      userList.value = [
-        {
-          id: 1,
-          username: 'admin',
-          name: '系统管理员',
-          email: 'admin@example.com',
-          phone: '13800000000',
-          departmentName: '总经办',
-          position: '系统管理员',
-          roles: ['admin'],
-          roleNames: '管理员',
-          status: '1',
-          statusName: '正常',
-          createTime: '2023-01-01 00:00:00'
-        },
-        {
-          id: 2,
-          username: 'zhangsan',
-          name: '张三',
-          email: 'zhangsan@example.com',
-          phone: '13800000001',
-          departmentName: '总经办',
-          position: '总经理',
-          roles: ['manager'],
-          roleNames: '部门经理',
-          status: '1',
-          statusName: '正常',
-          createTime: '2023-01-02 00:00:00'
-        },
-        {
-          id: 3,
-          username: 'lisi',
-          name: '李四',
-          email: 'lisi@example.com',
-          phone: '13800000002',
-          departmentName: '人力资源部',
-          position: '人事经理',
-          roles: ['manager'],
-          roleNames: '部门经理',
-          status: '1',
-          statusName: '正常',
-          createTime: '2023-01-03 00:00:00'
-        },
-        {
-          id: 4,
-          username: 'wangwu',
-          name: '王五',
-          email: 'wangwu@example.com',
-          phone: '13800000003',
-          departmentName: '财务部',
-          position: '财务经理',
-          roles: ['manager'],
-          roleNames: '部门经理',
-          status: '1',
-          statusName: '正常',
-          createTime: '2023-01-04 00:00:00'
-        },
-        {
-          id: 5,
-          username: 'zhaoliu',
-          name: '赵六',
-          email: 'zhaoliu@example.com',
-          phone: '13800000004',
-          departmentName: '技术部',
-          position: '技术总监',
-          roles: ['manager'],
-          roleNames: '部门经理',
-          status: '1',
-          statusName: '正常',
-          createTime: '2023-01-05 00:00:00'
-        }
-      ];
-      pagination.total = 5;
-      loading.value = false;
-    }, 500);
+
+    if (response && response.data) {
+      if (Array.isArray(response.data)) {
+        userList.value = response.data;
+        pagination.total = response.data.length; // 如果后端不返回 total，前端自行计算或处理
+      } else if (response.data.data && typeof response.data.total !== 'undefined') { // 假设后端返回 { data: [], total: number }
+        userList.value = response.data.data;
+        pagination.total = response.data.total;
+      } else {
+        // Fallback or error handling if data structure is unexpected
+        userList.value = [];
+        pagination.total = 0;
+        console.warn('Unexpected data structure from API for user list:', response.data);
+        ElMessage.warning('获取用户列表数据格式不正确');
+      }
+    } else {
+      userList.value = [];
+      pagination.total = 0;
+      ElMessage.warning('未能获取到用户列表数据');
+    }
   } catch (error) {
     console.error('获取用户列表失败:', error);
-    ElMessage.error('获取用户列表失败，请稍后重试');
+    ElMessage.error(error.response?.data?.message || error.message || '获取用户列表失败，请稍后重试');
+    userList.value = [];
+    pagination.total = 0;
+  } finally {
     loading.value = false;
   }
 };

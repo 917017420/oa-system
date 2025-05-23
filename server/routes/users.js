@@ -120,4 +120,15 @@ router.patch('/:id/status', protect, authorize('admin'), async (req, res) => {
   }
 });
 
+// 获取用于选择器的用户列表（ID 和 用户名）
+router.get('/list/selectable', protect, async (req, res) => {
+  try {
+    const users = await User.find().select('_id username name'); // 只选择ID、用户名和姓名
+    res.json(users);
+  } catch (error) {
+    console.error('获取可选用户列表错误:', error);
+    res.status(500).json({ message: '服务器错误', error: error.message });
+  }
+});
+
 module.exports = router;

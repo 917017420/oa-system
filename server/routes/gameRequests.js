@@ -246,10 +246,11 @@ router.get('/statistics', authMiddleware.protect, async (req, res) => {
   try {
     // 检查用户是否为管理员
     const isAdmin = req.user.roles.includes('admin');
+    const userId = req.user.id;
     
     // 构建查询条件
-    const sentQuery = isAdmin ? {} : { sender: req.user.id };
-    const receivedQuery = isAdmin ? {} : { receivers: req.user.id };
+    const sentQuery = isAdmin ? {} : { sender: userId };
+    const receivedQuery = isAdmin ? {} : { receivers: userId };
     
     // 获取统计数据
     const totalSent = await GameRequest.countDocuments(sentQuery);
@@ -259,20 +260,39 @@ router.get('/statistics', authMiddleware.protect, async (req, res) => {
     const acceptedSent = await GameRequest.countDocuments({ ...sentQuery, status: 'accepted' });
     const acceptedReceived = await GameRequest.countDocuments({ ...receivedQuery, status: 'accepted' });
     
+    // 获取更详细的用户特定统计信息
+    const acceptedCount = await GameRequest.countDocuments({
+      receivers: userId,
+      responses: { $elemMatch: { user: userId, status: 'accepted' } }
+    });
+    const pendingCount = await GameRequest.countDocuments({
+        receivers: userId,
+        status: 'pending',
+        responses: { $not: { $elemMatch: { user: userId } } }
+    });
+    
     res.json({
-      sent: {
-        total: totalSent,
-        pending: pendingSent,
-        accepted: acceptedSent,
-        rejected: await GameRequest.countDocuments({ ...sentQuery, status: 'rejected' }),
-        cancelled: await GameRequest.countDocuments({ ...sentQuery, status: 'cancelled' })
+      // 详细统计（管理员视图）
+      detailed: {
+        sent: {
+          total: totalSent,
+          pending: pendingSent,
+          accepted: acceptedSent,
+          rejected: await GameRequest.countDocuments({ ...sentQuery, status: 'rejected' }),
+          cancelled: await GameRequest.countDocuments({ ...sentQuery, status: 'cancelled' })
+        },
+        received: {
+          total: totalReceived,
+          pending: pendingReceived,
+          accepted: acceptedReceived,
+          rejected: await GameRequest.countDocuments({ ...receivedQuery, status: 'rejected' })
+        }
       },
-      received: {
-        total: totalReceived,
-        pending: pendingReceived,
-        accepted: acceptedReceived,
-        rejected: await GameRequest.countDocuments({ ...receivedQuery, status: 'rejected' })
-      }
+      // 简化统计（用户视图）
+      sent: totalSent,
+      received: totalReceived,
+      accepted: acceptedCount,
+      pending: pendingCount
     });
   } catch (err) {
     console.error(err.message);
