@@ -29,12 +29,7 @@ const router = createRouter({
           meta: { title: '个人中心', icon: 'user', requiresAuth: true }
         },
 
-        {
-          path: 'workflows',
-          name: 'Workflows',
-          component: () => import('../views/workflows/index.vue'),
-          meta: { title: '工作流程', icon: 'connection', requiresAuth: true }
-        },
+
         {
           path: 'users',
           name: 'Users',
@@ -42,28 +37,10 @@ const router = createRouter({
           meta: { title: '用户管理', icon: 'user-group', requiresAuth: true, roles: ['admin'] }
         },
         {
-          path: 'game-invitations/create',
-          name: 'CreateGameInvitation',
-          component: () => import('../views/game_invitations/CreateInvitation.vue'),
-          meta: { title: '创建游戏邀请', icon: 'plus', requiresAuth: true }
-        },
-        {
-          path: 'game-invitations/my',
-          name: 'MyGameInvitations',
-          component: () => import('../views/game_invitations/MyInvitations.vue'),
-          meta: { title: '我发出的邀约', icon: 'message', requiresAuth: true }
-        },
-        {
-          path: 'game-invitations/received',
-          name: 'ReceivedGameInvitations',
-          component: () => import('../views/game_invitations/ReceivedInvitations.vue'),
-          meta: { title: '我收到的邀约', icon: 'bell', requiresAuth: true }
-        },
-        {
-          path: 'game-invitations/admin',
-          name: 'AdminGameInvitations',
-          component: () => import('../views/game_invitations/AdminInvitations.vue'),
-          meta: { title: '邀请管理', icon: 'management', requiresAuth: true, roles: ['admin'] }
+          path: 'game-invitations',
+          name: 'GameInvitations',
+          component: () => import('../views/game_invitations/index.vue'),
+          meta: { title: '游戏邀请', icon: 'message', requiresAuth: true }
         }
       ]
     },

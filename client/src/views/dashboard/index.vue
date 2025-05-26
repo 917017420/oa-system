@@ -190,22 +190,10 @@ onMounted(() => {
             </div>
           </template>
           <div class="quick-actions">
-            <el-button type="primary" @click="navigateTo('/game-invitations/create')">
-              <el-icon><Plus /></el-icon>
-              创建游戏邀请
-            </el-button>
-            <el-button type="success" @click="navigateTo('/game-invitations/sent')">
-              <el-icon><Message /></el-icon>
-              我发送的邀请
-            </el-button>
-            <el-button type="warning" @click="navigateTo('/game-invitations/received')">
-              <el-icon><ChatDotRound /></el-icon>
-              我收到的邀请
-            </el-button>
-            <el-button v-if="isAdmin" type="info" @click="navigateTo('/game-invitations/admin')">
-              <el-icon><Management /></el-icon>
-              邀请管理
-            </el-button>
+            <el-button @click="navigateTo('/game-invitations')" class="action-btn create-btn">
+          <el-icon><Message /></el-icon>
+          <span>游戏邀请</span>
+        </el-button>
             <el-button v-if="isAdmin" type="danger" @click="userDialogVisible = true">
               <el-icon><User /></el-icon>
               添加用户

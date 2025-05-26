@@ -7,11 +7,8 @@ import {
   Document,
   HomeFilled,
   User,
-  Connection,
   UserFilled,
-  Plus,
-  Message,
-  Bell
+  Message
 } from '@element-plus/icons-vue';
 
 const userStore = useUserStore();
