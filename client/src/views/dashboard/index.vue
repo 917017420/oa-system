@@ -298,125 +298,381 @@ onMounted(() => {
 </template>
 
 <style scoped>
+/* 全局样式和背景 */
 .dashboard-container {
-  padding: 20px;
+  padding: 30px;
+  position: relative;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: calc(100vh - 60px);
 }
 
+.dashboard-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0.1;
+  z-index: 0;
+  border-radius: 0 0 50% 50% / 30px;
+}
+
+/* 欢迎卡片 */
 .welcome-card {
-  background-color: #fff;
-  border-radius: 4px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.welcome-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  border-radius: 50%;
+  opacity: 0.05;
+  z-index: -1;
+}
+
+.welcome-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
 .welcome-card h2 {
-  margin: 0 0 10px 0;
-  font-size: 24px;
-  color: #303133;
+  margin: 0 0 15px 0;
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 10px rgba(102, 126, 234, 0.1);
 }
 
 .welcome-card p {
   margin: 0;
-  color: #909399;
+  color: #6c757d;
+  font-size: 16px;
+  font-weight: 500;
 }
 
+/* 统计卡片 */
 .stat-row {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-card {
   height: 100%;
   margin-bottom: 20px;
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.stat-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
 .stat-card-content {
   display: flex;
   align-items: center;
+  padding: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card-content::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  opacity: 0.1;
+  z-index: 0;
 }
 
 .stat-icon {
-  font-size: 48px;
+  font-size: 40px;
   margin-right: 20px;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 16px;
+  border-radius: 16px;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.stat-icon:hover {
+  transform: scale(1.1) rotate(5deg);
 }
 
 .stat-icon.document {
-  background-color: rgba(64, 158, 255, 0.1);
-  color: #409EFF;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: #fff;
 }
 
 .stat-icon.workflow {
-  background-color: rgba(103, 194, 58, 0.1);
-  color: #67C23A;
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: #fff;
 }
 
 .stat-icon.pending {
-  background-color: rgba(230, 162, 60, 0.1);
-  color: #E6A23C;
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: #fff;
 }
 
 .stat-icon.completed {
-  background-color: rgba(103, 194, 58, 0.1);
-  color: #67C23A;
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  color: #333;
 }
 
 .stat-icon.game-sent {
-  background-color: rgba(64, 158, 255, 0.1);
-  color: #409EFF;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
 }
 
 .stat-icon.game-received {
-  background-color: rgba(230, 162, 60, 0.1);
-  color: #E6A23C;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #fff;
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.stat-card-content .stat-icon.document + .stat-info::before {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
-.quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.stat-card-content .stat-icon.workflow + .stat-info::before {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
 }
 
-.quick-actions-row {
-  margin-bottom: 20px;
+.stat-card-content .stat-icon.pending + .stat-info::before {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
 }
 
-.invitation-stats-card {
-  margin-bottom: 20px;
+.stat-card-content .stat-icon.completed + .stat-info::before {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
 }
 
-.invitation-stats-card h4 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: #606266;
+.stat-card-content .stat-icon.game-sent + .stat-info::before {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-card-content .stat-icon.game-received + .stat-info::before {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
 .stat-info {
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-value {
-  font-size: 28px;
-  font-weight: bold;
-  color: #303133;
+  font-size: 32px;
+  font-weight: 800;
+  color: #2c3e50;
   line-height: 1;
   margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .stat-label {
   font-size: 14px;
-  color: #909399;
+  color: #6c757d;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.box-card {
+/* 快捷操作卡片 */
+.quick-actions-row {
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 1;
+}
+
+.quick-actions-card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  overflow: hidden;
+}
+
+.quick-actions-card :deep(.el-card__header) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom: none;
+  padding: 20px;
+}
+
+.quick-actions-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 10px;
+}
+
+.quick-actions .el-button {
+  border-radius: 12px;
+  padding: 15px 25px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+.quick-actions .el-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.quick-actions .action-btn.create-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.quick-actions .el-button[type="danger"] {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+/* 邀请统计卡片 */
+.invitation-stats-card {
+  margin-bottom: 30px;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  overflow: hidden;
+}
+
+.invitation-stats-card :deep(.el-card__header) {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: white;
+  border-bottom: none;
+  padding: 20px;
+}
+
+.invitation-stats-card .card-header {
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.invitation-stats-card h4 {
+  margin-top: 0;
   margin-bottom: 20px;
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.invitation-stats-card :deep(.el-progress) {
+  margin-bottom: 15px;
+}
+
+.invitation-stats-card :deep(.el-progress-bar__outer) {
+  border-radius: 10px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.invitation-stats-card :deep(.el-progress-bar__inner) {
+  border-radius: 10px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 15px;
+  }
+  
+  .welcome-card {
+    padding: 20px;
+    border-radius: 16px;
+  }
+  
+  .welcome-card h2 {
+    font-size: 24px;
+  }
+  
+  .stat-card-content {
+    padding: 8px;
+  }
+  
+  .stat-icon {
+    font-size: 32px;
+    padding: 12px;
+    margin-right: 15px;
+  }
+  
+  .stat-value {
+    font-size: 24px;
+  }
+  
+  .stat-label {
+    font-size: 12px;
+  }
+  
+  .quick-actions {
+    flex-direction: column;
+  }
+  
+  .quick-actions .el-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: 10px;
+  }
+  
+  .welcome-card {
+    padding: 15px;
+  }
+  
+  .welcome-card h2 {
+    font-size: 20px;
+  }
+  
+  .stat-icon {
+    font-size: 28px;
+    padding: 10px;
+  }
+  
+  .stat-value {
+    font-size: 20px;
+  }
 }
 </style>

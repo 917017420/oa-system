@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/authMiddleware');
+const { uploadMiddleware, uploadAvatar } = require('../controllers/authController'); // 引入头像上传中间件和控制器方法
 
 // 获取所有用户列表（需要管理员权限）
 router.get('/', protect, authorize('admin'), async (req, res) => {
@@ -38,7 +39,11 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 // 更新用户信息
-router.put('/:id', protect, async (req, res) => {
+const { updateProfile } = require('../controllers/authController');
+router.put('/:id/profile', protect, uploadMiddleware, updateProfile); // 修改路由以包含头像上传中间件和新的控制器方法
+
+// 旧的更新用户信息路由，可以考虑是否保留或移除，暂时注释掉
+// router.put('/:id', protect, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
 
@@ -69,12 +74,12 @@ router.put('/:id', protect, async (req, res) => {
       { new: true, runValidators: true }
     ).select('-password');
 
-    res.json(updatedUser);
-  } catch (error) {
-    console.error('更新用户信息错误:', error);
-    res.status(500).json({ message: '服务器错误', error: error.message });
-  }
-});
+//     res.json(updatedUser);
+//   } catch (error) {
+//     console.error('更新用户信息错误:', error);
+//     res.status(500).json({ message: '服务器错误', error: error.message });
+//   }
+// });
 
 // 删除用户（仅管理员）
 router.delete('/:id', protect, authorize('admin'), async (req, res) => {
@@ -130,5 +135,8 @@ router.get('/list/selectable', protect, async (req, res) => {
     res.status(500).json({ message: '服务器错误', error: error.message });
   }
 });
+
+// 上传用户头像
+router.post('/:id/avatar', protect, uploadMiddleware, uploadAvatar);
 
 module.exports = router;

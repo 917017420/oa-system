@@ -23,12 +23,14 @@ const workflowRoutes = require('./routes/workflows');
 const gameRequestRoutes = require('./routes/gameRequests'); // 引入游戏邀约路由
 
 
-// 使用路由
+// 配置静态文件服务，用于头像等公开文件
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
+// 路由
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/documents', documentRoutes);
-app.use('/api/workflows', workflowRoutes);
-app.use('/api/game-requests', gameRequestRoutes); // 使用游戏邀约路由
+app.use('/api/game-requests', gameRequestRoutes);
 
 
 // 生产环境下提供前端静态文件

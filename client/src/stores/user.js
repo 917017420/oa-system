@@ -119,6 +119,12 @@ export const useUserStore = defineStore('user', {
       
       // 重定向到登录页
       router.push('/login')
+    },
+    updateUserAvatar(avatarUrl) {
+      if (this.user) {
+        this.user.avatar = avatarUrl;
+        localStorage.setItem('user', JSON.stringify(this.user));
+      }
     }
   }
 })

@@ -12,4 +12,7 @@ router.post('/login', authController.login);
 // 获取当前用户信息（需要认证）
 router.get('/me', protect, authController.getCurrentUser);
 
+// 修改密码（需要认证）
+router.put('/update-password', protect, authController.updatePassword);
+
 module.exports = router;
