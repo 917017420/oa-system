@@ -7,8 +7,9 @@ const userService = {
   },
 
   // 获取用于选择器的用户列表 (ID 和 用户名)
-  getSelectableUsers() {
-    return apiClient.get('/users/list/selectable');
+  async getSelectableUsers() { // Made async
+    const response = await apiClient.get('/users/list/selectable'); // Await and get response
+    return response.data; // Return the data array
   },
 
   // 获取特定用户的详细信息

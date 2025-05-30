@@ -6,8 +6,13 @@ const path = require('path');
 // Multer 配置 - 用于文件上传
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // 确保这个目录存在，或者在应用启动时创建它
-    cb(null, path.join(__dirname, '..', 'public', 'uploads', 'avatars'));
+    const uploadPath = path.join(__dirname, '..', 'public', 'uploads', 'avatars');
+    // 确保这个目录存在，如果不存在则创建它
+    const fs = require('fs');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
     const userId = req.user.id; // 从 protect 中间件获取用户ID
@@ -326,11 +331,11 @@ exports.updateProfile = async (req, res) => {
 };
 
 module.exports = {
-  register,
-  login,
-  getCurrentUser,
-  updatePassword,
-  uploadAvatar,
-  uploadMiddleware,
-  updateProfile
+  register: exports.register,
+  login: exports.login,
+  getCurrentUser: exports.getCurrentUser,
+  updatePassword: exports.updatePassword,
+  uploadAvatar: exports.uploadAvatar,
+  uploadMiddleware: exports.uploadMiddleware,
+  updateProfile: exports.updateProfile
 };

@@ -4,6 +4,7 @@ import { useUserStore } from '../../stores/user';
 import { useRouter } from 'vue-router';
 import gameInvitationService from '@/services/gameInvitationService';
 import { ElMessage } from 'element-plus';
+import { User, Message, ChatDotRound, Timer, Select } from '@element-plus/icons-vue';
 import apiClient from '@/apiClient';
 
 const router = useRouter();
@@ -22,10 +23,13 @@ const gameInvitationStats = ref({
 // 获取游戏邀请统计数据
 const fetchGameInvitationStats = async () => {
   try {
-    const stats = await gameInvitationService.getSimplifiedStatistics();
+    // Corrected to use the exported getSimplifiedStatistics function
+    const stats = await gameInvitationService.getSimplifiedStatistics(); 
     gameInvitationStats.value = stats;
   } catch (error) {
     console.error('获取游戏邀请统计失败:', error);
+    // It's good practice to provide user feedback if the API call fails
+    ElMessage.error('获取游戏邀请统计数据失败，请稍后重试'); 
   }
 };
 
@@ -134,7 +138,7 @@ onMounted(() => {
       <el-col :xs="12" :sm="6" :md="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-card-content">
-            <el-icon class="stat-icon game-sent"><Message /></el-icon>
+            <el-icon class="stat-icon game-sent"><message /></el-icon>
             <div class="stat-info">
               <div class="stat-value">{{ gameInvitationStats.sent || 0 }}</div>
               <div class="stat-label">游戏邀请(发送)</div>
@@ -146,7 +150,7 @@ onMounted(() => {
       <el-col :xs="12" :sm="6" :md="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-card-content">
-            <el-icon class="stat-icon game-received"><ChatDotRound /></el-icon>
+            <el-icon class="stat-icon game-received"><chat-dot-round /></el-icon>
             <div class="stat-info">
               <div class="stat-value">{{ gameInvitationStats.received || 0 }}</div>
               <div class="stat-label">游戏邀请(收到)</div>
@@ -158,7 +162,7 @@ onMounted(() => {
       <el-col :xs="12" :sm="6" :md="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-card-content">
-            <el-icon class="stat-icon pending"><Timer /></el-icon>
+            <el-icon class="stat-icon pending"><timer /></el-icon>
             <div class="stat-info">
               <div class="stat-value">{{ gameInvitationStats.pending || 0 }}</div>
               <div class="stat-label">待处理邀请</div>
@@ -170,7 +174,7 @@ onMounted(() => {
       <el-col :xs="12" :sm="6" :md="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-card-content">
-            <el-icon class="stat-icon completed"><Select /></el-icon>
+            <el-icon class="stat-icon completed"><select /></el-icon>
             <div class="stat-info">
               <div class="stat-value">{{ gameInvitationStats.accepted || 0 }}</div>
               <div class="stat-label">已接受邀请</div>
@@ -191,7 +195,7 @@ onMounted(() => {
           </template>
           <div class="quick-actions">
             <el-button @click="navigateTo('/game-invitations')" class="action-btn create-btn">
-          <el-icon><Message /></el-icon>
+          <el-icon><message /></el-icon>
           <span>游戏邀请</span>
         </el-button>
             <el-button v-if="isAdmin" type="danger" @click="userDialogVisible = true">

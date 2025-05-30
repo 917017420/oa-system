@@ -8,11 +8,12 @@ import {
   HomeFilled,
   User,
   UserFilled,
-  Message
-} from '@element-plus/icons-vue';
+  Message,
+  } from '@element-plus/icons-vue';
 
 const userStore = useUserStore();
 const router = useRouter();
+
 
 // 侧边栏折叠状态
 const isCollapse = ref(false);
@@ -79,7 +80,6 @@ const routes = computed(() => {
           <el-icon class="toggle-button" @click="toggleSidebar">
             <IconMenu />
           </el-icon>
-          <breadcrumb />
         </div>
         
         <div class="header-right">

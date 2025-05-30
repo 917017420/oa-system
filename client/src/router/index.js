@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useUserStore } from '../stores/user'
+import { useUserStore } from '../stores/user';
+import Cookies from 'js-cookie';
 
 // 路由配置
 const router = createRouter({
@@ -60,8 +61,8 @@ router.beforeEach(async (to, from, next) => {
 
   const userStore = useUserStore();
 
-  // 尝试从localStorage初始化用户状态，并验证token
-  if (!userStore.isLoggedIn && localStorage.getItem('token')) {
+  // 尝试从 Cookies 初始化用户状态 (userStore.initUserFromStorage 已被修改为从 Cookies 读取)
+  if (!userStore.isLoggedIn && Cookies.get('token')) { // 检查 token cookie 是否存在
     userStore.initUserFromStorage(); // 这会设置token和axios header
     if (userStore.isLoggedIn) {
       try {

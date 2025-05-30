@@ -24,7 +24,8 @@ const gameRequestRoutes = require('./routes/gameRequests'); // 引入游戏邀�
 
 
 // 配置静态文件服务，用于头像等公开文件
-app.use('/public', express.static(path.join(__dirname, 'public')));
+// Serve files from server/public/uploads at the /uploads route
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 // 路由
 app.use('/api/auth', authRoutes);

@@ -310,7 +310,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Refresh, Message, Bell, Clock, Check, Search } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
@@ -425,7 +425,7 @@ const fetchAdminInvitations = async () => {
 
 const updateStats = async () => {
   try {
-    const statsData = await gameInvitationService.getStats()
+    const statsData = await gameInvitationService.getSimplifiedStatistics() // Corrected function name
     Object.assign(stats, statsData)
   } catch (error) {
     console.error('获取统计数据失败:', error)
@@ -439,17 +439,33 @@ const handleTabChange = (tabName) => {
 }
 
 const searchUsers = async (query) => {
-  if (!query) {
-    users.value = []
-    return
+  if (!query && users.value.length > 0) { // Keep preloaded users if query is empty
+    // Optionally, you might want to reset to the full preloaded list or filter locally
+    // For now, just don't clear if users are already loaded and query is empty
+    return;
   }
+  if (!query && users.value.length === 0) { // If no query and no users, fetch all
+    loadingUsers.value = true;
+    try {
+      const allUsers = await userService.getSelectableUsers();
+      users.value = allUsers.filter(user => user._id !== userStore.userInfo._id);
+    } catch (error) {
+      ElMessage.error('获取用户列表失败');
+    } finally {
+      loadingUsers.value = false;
+    }
+    return;
+  }
+
   loadingUsers.value = true
   try {
-    const allUsers = await userService.getUsers()
+    // Assuming userService.getSelectableUsers() can also be used for searching if needed
+    // Or, if it always returns all users, filter locally
+    const allUsers = await userService.getSelectableUsers() 
     users.value = allUsers.filter(user => 
       user._id !== userStore.userInfo._id &&
-      (user.name.toLowerCase().includes(query.toLowerCase()) ||
-       user.username.toLowerCase().includes(query.toLowerCase()))
+      (user.name?.toLowerCase().includes(query.toLowerCase()) ||
+       user.username?.toLowerCase().includes(query.toLowerCase()))
     )
   } catch (error) {
     ElMessage.error('搜索用户失败')
@@ -457,6 +473,36 @@ const searchUsers = async (query) => {
     loadingUsers.value = false
   }
 }
+
+const fetchSelectableUsersForDialog = async () => {
+  if (users.value.length > 0) return; // Avoid refetching if already loaded
+  loadingUsers.value = true;
+  try {
+    const allUsers = await userService.getSelectableUsers();
+    users.value = allUsers.filter(user => user._id !== userStore.userInfo._id);
+  } catch (error) {
+    ElMessage.error('获取可选用户列表失败');
+    users.value = []; // Ensure users is an array in case of error
+  } finally {
+    loadingUsers.value = false;
+  }
+};
+
+// Watch for dialog opening to fetch users
+watch(showCreateDialog, (newValue) => {
+  if (newValue) {
+    fetchSelectableUsersForDialog();
+    // Reset form when dialog opens, if not already handled elsewhere
+    if (createFormRef.value) {
+      createFormRef.value.resetFields();
+    }
+    Object.assign(createForm, {
+      gameName: '',
+      receivers: [],
+      message: ''
+    });
+  }
+});
 
 const createInvitation = async () => {
   if (!createFormRef.value) return

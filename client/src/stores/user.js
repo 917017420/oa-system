@@ -1,13 +1,14 @@
-import { defineStore } from 'pinia'
+import { defineStore } from 'pinia';
+import Cookies from 'js-cookie';
 import axios from 'axios'
 import router from '../router'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    token: localStorage.getItem('token') || '',
-    user: JSON.parse(localStorage.getItem('user') || 'null'),
-    roles: JSON.parse(localStorage.getItem('roles') || '[]'),
-    permissions: JSON.parse(localStorage.getItem('permissions') || '[]')
+    token: Cookies.get('token') || '',
+    user: JSON.parse(Cookies.get('user') || 'null'),
+    roles: JSON.parse(Cookies.get('roles') || '[]'),
+    permissions: JSON.parse(Cookies.get('permissions') || '[]')
   }),
   
   getters: {
@@ -22,12 +23,12 @@ export const useUserStore = defineStore('user', {
   },
   
   actions: {
-    // 从本地存储初始化用户信息
+    // 从 Cookies 初始化用户信息
     initUserFromStorage() {
-      const token = localStorage.getItem('token')
-      const user = JSON.parse(localStorage.getItem('user') || 'null')
-      const roles = JSON.parse(localStorage.getItem('roles') || '[]')
-      const permissions = JSON.parse(localStorage.getItem('permissions') || '[]')
+      const token = Cookies.get('token');
+      const user = JSON.parse(Cookies.get('user') || 'null');
+      const roles = JSON.parse(Cookies.get('roles') || '[]');
+      const permissions = JSON.parse(Cookies.get('permissions') || '[]');
       
       if (token) {
         this.setUserData({ token, user, roles, permissions })
@@ -43,11 +44,12 @@ export const useUserStore = defineStore('user', {
       this.roles = roles
       this.permissions = permissions
       
-      // 保存到本地存储
-      localStorage.setItem('token', token)
-      localStorage.setItem('user', JSON.stringify(user))
-      localStorage.setItem('roles', JSON.stringify(roles))
-      localStorage.setItem('permissions', JSON.stringify(permissions))
+      // 保存到 Cookies，设置1小时过期
+      const expires = new Date(new Date().getTime() + 60 * 60 * 1000);
+      Cookies.set('token', token, { expires });
+      Cookies.set('user', JSON.stringify(user), { expires });
+      Cookies.set('roles', JSON.stringify(roles), { expires });
+      Cookies.set('permissions', JSON.stringify(permissions), { expires });
       
       // 设置 axios 默认请求头
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
@@ -86,9 +88,10 @@ export const useUserStore = defineStore('user', {
         this.roles = user.roles
         this.permissions = user.permissions
         
-        localStorage.setItem('user', JSON.stringify(user))
-        localStorage.setItem('roles', JSON.stringify(user.roles))
-        localStorage.setItem('permissions', JSON.stringify(user.permissions))
+        const expires = new Date(new Date().getTime() + 60 * 60 * 1000);
+        Cookies.set('user', JSON.stringify(user), { expires });
+        Cookies.set('roles', JSON.stringify(user.roles), { expires });
+        Cookies.set('permissions', JSON.stringify(user.permissions), { expires });
         
         return { success: true, user }
       } catch (error) {
@@ -108,11 +111,11 @@ export const useUserStore = defineStore('user', {
       this.roles = []
       this.permissions = []
       
-      // 清除本地存储
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      localStorage.removeItem('roles')
-      localStorage.removeItem('permissions')
+      // 清除 Cookies
+      Cookies.remove('token');
+      Cookies.remove('user');
+      Cookies.remove('roles');
+      Cookies.remove('permissions');
       
       // 清除请求头
       delete axios.defaults.headers.common['Authorization']
@@ -123,7 +126,8 @@ export const useUserStore = defineStore('user', {
     updateUserAvatar(avatarUrl) {
       if (this.user) {
         this.user.avatar = avatarUrl;
-        localStorage.setItem('user', JSON.stringify(this.user));
+        const expires = new Date(new Date().getTime() + 60 * 60 * 1000);
+        Cookies.set('user', JSON.stringify(this.user), { expires });
       }
     }
   }
